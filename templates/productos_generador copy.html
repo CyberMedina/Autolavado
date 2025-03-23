@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Productos</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <meta content="Free Website Template" name="keywords" />
+    <meta content="Free Website Template" name="description" />
+
+    <!-- Favicon -->
+    <link href="img/favicon.ico" rel="icon" />
+
+    <!-- Google Font -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- CSS Libraries -->
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Template Stylesheet -->
+    <link
+      href="{{ url_for('static', filename='css/style_servicios_generador.css') }}"
+      rel="stylesheet"
+    />
+
+    <!-- Modificar las referencias a CSS para que funcionen en PDF -->
+    <style>
+        .price {
+            padding: 50px 0;
+        }
+        .price {
+            position: relative;
+            width: 100%;
+            padding: 45px 0 15px 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .section-header {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin: 0 auto 45px auto;
+        }
+        .text-center {
+            text-align: center !important;
+        }
+
+        .section-header p {
+            font-size: 45px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .section-header p {
+            margin: 0;
+            font-size: 45px;
+            font-weight: 700;
+            text-transform: capitalize;
+            display: inline-block;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            position: relative;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+        p {
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+
+        .section-header p::after {
+            position: absolute;
+            content: "";
+            width: 50%;
+            height: 2px;
+            left: 25%;
+            bottom: 0;
+            background: #E81C2E;
+        }
+        *, ::after, ::before {
+            box-sizing: border-box;
+        }
+
+        .price .row {
+            padding: 0 15px;
+        }
+        .row {
+            display: flex
+        ;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        .row {
+            display: -ms-flexbox;
+            display: flex
+        ;
+            -ms-flex-wrap: wrap;
+            flex-wrap: wrap;
+            margin-right: -15px;
+            margin-left: -15px;
+        }
+    </style>
+  </head>
+
+  <body>
+    <!-- Price Start -->
+    <div class="price">
+      <div class="container">
+        <div class="section-header text-center">
+          <p>Nuestros productos son:</p>
+          <!-- <h2>Choose Your Plan</h2> -->
+        </div>
+        <div class="row">
+          {% for producto in productos %}
+          <div class="col">
+            <div class="price-item">
+              <div class="price-header">
+                <img
+                  src="file:///{{ producto.logo }}"
+                  class="img-fluid rounded w-50"
+                  alt="{{ producto.nombre }}"
+                />
+                <h3>{{ producto.nombre }}</h3>
+              </div>
+              <div class="price-body">
+                <ul>
+                  <li>
+                    <i class="fa fa-check"></i> {{ producto.descripcion }}
+                  </li>
+                  <li><i class="fa fa-check"></i> C$ {{ producto.precio }}</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Price End -->
+
+    <div class="content-wrapper">
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <script>
+        Swal.fire("{{ category }}!", "{{ message }}", "{{ category.lower() }}");
+      </script>
+      {% endfor %} {% endif %} {% endwith %} {% block main %}
+      <!-- Contenido específico de la página -->
+      {% endblock %}
+    </div>
+  </body>
+</html>

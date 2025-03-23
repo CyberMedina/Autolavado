@@ -2,6 +2,7 @@ from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 import os
+from dotenv import load_dotenv
 from decimal import *
 import datetime
 from datetime import *
@@ -44,7 +45,7 @@ app.config['MAIL_PASSWORD'] = os.getenv("clave")
 app.secret_key = '123'
 
 
-
+load_dotenv()
 
 
 
@@ -739,7 +740,11 @@ def consultar_servicios(db_session: Session, filtro_id=None):
 
 
 def obtener_productos(db_session):
-    query = text("SELECT * FROM producto")
+    query = text("""
+                 SELECT * FROM producto prd
+INNER JOIN precio prc ON prd.id = prc.id_producto
+WHERE prd.estado = '1
+                 '""")
     productos = db_session.execute(query).fetchall()
     return productos
 
@@ -847,7 +852,7 @@ ORDER BY
     return ventas
 
 
-def obtener_reservacion(db_session: session):
+def obtener_reservacion(db_session):
     query = text("""SELECT r.*, p.nombre AS cliente,s.nombre AS servicio, p.celular
 FROM reservacion r
 INNER JOIN clientes c ON c.id = r.idcliente
@@ -966,7 +971,7 @@ def obtener_precios_servicios(db_session):
     return precios
 
 
-def ObtenerTrabajadores(db_session: session):
+def ObtenerTrabajadores(db_session):
     query = text("""
             SELECT 
                 t.id AS trabajador_id, t.codigo, t.foto, t.estado,
@@ -980,7 +985,7 @@ def ObtenerTrabajadores(db_session: session):
     return result
 
 
-def ObtenerEmpleadoSinUsuario(db_session: session):
+def ObtenerEmpleadoSinUsuario(db_session):
     consulta = text("""
            SELECT p.id AS persona_id, p.nombre, p.correo
             FROM persona p
@@ -1006,7 +1011,7 @@ def obtener_info_persona(id_persona):
     return datos
 
 
-def mostra_clientes(db_session: session):
+def mostra_clientes(db_session):
     query = text("""
          SELECT
             c.id,
@@ -1039,7 +1044,7 @@ def mostra_clientes(db_session: session):
     return result
 
 
-def obtenerusuarios(db_session: session):
+def obtenerusuarios(db_session):
     query = text(""" SELECT s.*, p.nombre,pn.apellido FROM usuario s
 INNER JOIN persona p ON p.id = s.id_persona
 INNER JOIN persona_natural pn ON pn.id =s.id_persona """)
@@ -1047,7 +1052,7 @@ INNER JOIN persona_natural pn ON pn.id =s.id_persona """)
     return result
 
 
-def horariosistema(db_session: session):
+def horariosistema(db_session):
     query = text(""" SELECT * FROM horarios ORDER BY id ASC """)
     result = db_session.execute(query).fetchall()
     return result
@@ -2667,59 +2672,98 @@ def ver_servicios_clientes():
 
 
 def generar_pdf_servicios(db_session):
-    # Aquí es donde se renderiza tu plantilla HTML con Jinja
-    # Se obtiene la lista de productos
     servicios = obtener_servicios_activos(db_session)
-
     rendered = render_template('servicios_generador.html', servicios=servicios)
-    # Aquí es donde se convierte el HTML renderizado a PDF
-    options = {
-        'enable-local-file-access': '',
-        'quiet': '',
-        'no-outline': None,
-        'encoding': 'utf-8',
-        'custom-header': [
-            ('Accept-Encoding', 'gzip')
-        ],
-        'cookie': [
-            ('cookie-name1', 'cookie-value1'),
-            ('cookie-name2', 'cookie-value2'),
-        ],
-        'no-outline': None
-    }
-    css = ['static/css/boostrap4.css',
-           'static/css/style_servicios_generador.css']
-    pdf = pdfkit.from_string(
-        rendered, 'static/pdf/servicios/Servicios.pdf', options=options, css=css)
+
+    pdf = generar_pdf_desde_html(rendered)
+
+    with open('static/pdf/servicios/Servicios.pdf', 'wb') as f:
+        f.write(pdf)
+
     return True
 
+
+
+def generar_pdf_desde_html(html):
+    # Si wkhtmltopdf no está en el PATH, especifica la ruta correcta
+    config = pdfkit.configuration(wkhtmltopdf=r'C:\wkhtmltox\bin\wkhtmltopdf.exe')
+    # Convierte el HTML renderizado a PDF
+    pdf = pdfkit.from_string(html, False, configuration=config)
+    return pdf
 
 def generar_pdf_productos(db_session):
-    # Aquí es donde se renderiza tu plantilla HTML con Jinja
-    # Se obtiene la lista de productos
     productos = obtener_productos(db_session)
+    productosModificados = []
+    
+    for producto in productos:
+        productoImg = producto[3]
+        if productoImg is not None:
+            ruta_absoluta = os.path.join(os.getcwd(), productoImg)
+            producto_dict = {
+                'id': producto[0],
+                'nombre': producto[1],
+                'descripcion': producto[2],
+                'logo': ruta_absoluta,
+                'precio': producto[7]
+            }
+            productosModificados.append(producto_dict)
 
-    rendered = render_template('productos_generador.html', productos=productos)
-    # Aquí es donde se convierte el HTML renderizado a PDF
+    # Formatear la fecha y hora actual
+    fecha_actual = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    
+    # Pasar la fecha al template
+    rendered = render_template('productos_generador.html', 
+                             productos=productosModificados,
+                             fecha_generacion=fecha_actual)
+
     options = {
-        'enable-local-file-access': '',
-        'quiet': '',
+        'enable-local-file-access': None,
+        'orientation': 'Landscape',
+        'page-size': 'A3',
+        'margin-top': '15mm',
+        'margin-right': '15mm',
+        'margin-bottom': '25mm',  # Aumentado para el footer
+        'margin-left': '15mm',
+        'encoding': 'UTF-8',
         'no-outline': None,
-        'encoding': 'utf-8',
-        'custom-header': [
-            ('Accept-Encoding', 'gzip')
-        ],
-        'cookie': [
-            ('cookie-name1', 'cookie-value1'),
-            ('cookie-name2', 'cookie-value2'),
-        ],
-        'no-outline': None
+        'enable-smart-shrinking': False,
+        'zoom': '1.0',  # Forzar zoom 1:1
+        'print-media-type': True,
+        'dpi': 300,
+        'viewport-size': '1920x1080',
+        'footer-left': 'Generado el: ' + fecha_actual,
+        'footer-right': 'Página [page] de [topage]'   # Agregar numeración de páginas
     }
-    css = ['static/css/boostrap4.css',
-           'static/css/style_servicios_generador.css']
-    pdf = pdfkit.from_string(
-        rendered, 'static/pdf/productos/Productos.pdf', options=options, css=css)
+
+    config = pdfkit.configuration(wkhtmltopdf=r'C:\wkhtmltox\bin\wkhtmltopdf.exe')
+    pdf = pdfkit.from_string(rendered, False, configuration=config, options=options)
+
+    with open('static/pdf/productos/Productos.pdf', 'wb') as f:
+        f.write(pdf)
+
     return True
+
+
+@app.route('/productos_generador')
+def productos_generador():
+    productos = obtener_productos(db_session)
+    productosModificados = []
+    
+    for producto in productos:
+        productoImg = producto[3]
+        if productoImg is not None:
+            ruta_absoluta = os.path.join(os.getcwd(), productoImg)
+            producto_dict = {
+                'id': producto[0],
+                'nombre': producto[1],
+                'descripcion': producto[2],
+                'logo': ruta_absoluta,
+                'precio': producto[7]
+            }
+            productosModificados.append(producto_dict)
+
+    # Renderiza el template HTML con Jinja usando la lista de diccionarios
+    return render_template('productos_generador copy.html', productos=productosModificados)
 
 
 @app.route('/generarPDFServicios', methods=['GET'])

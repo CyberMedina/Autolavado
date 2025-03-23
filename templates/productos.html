@@ -38,7 +38,10 @@
                             <button type="button" class="btn btn-secondary" data-toggle="modal"
                                 data-target="#modal-default">Agregar
                                 Productos</button>
-                        </div>
+                            <a class="btn btn-success" href="/generarPDFProductos" target="_blank">Generar PDF para BOT
+                                WhatsApp</a>
+                        </div>.
+
 
                     </div>
                     <!-- /.card-header -->
@@ -46,10 +49,10 @@
                         <table id="example1" class="table table-bordered table-striped">
                             <thead>
                                 <tr>
-                                    
+
                                     <th>Producto</th>
                                     <th>Descripcion</th>
-                                   
+
                                     <th>Logo</th>
                                     <th>Estado</th>
                                     <th>Action</th>
@@ -58,10 +61,10 @@
                             <tbody>
                                 {% for productos in productos %}
                                 <tr>
-                        
+
                                     <td>{{ productos.nombre }}</td>
                                     <td>{{ productos.descripcion }}</td>
-                                  
+
                                     <th> <img src="{{productos.logo}}" alt width="50"></th>
                                     <td>
                                         {% if productos.estado == 1 %}
@@ -100,7 +103,7 @@
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
-                        
+
                         <div class="form-group">
                             <label>Nombre</label>
                             <input type="text" name="nombre" class="form-control" required>
@@ -109,7 +112,7 @@
                             <label>descripcion</label>
                             <textarea name="descripcion" class="form-control" required></textarea>
                         </div>
-                        
+
                         <div class="form-group">
                             <label>Foto</label>
                             <input type="file" name="logo" class="form-control" required accept="image/*">
@@ -140,7 +143,7 @@
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
-                        
+
 
                         <div class="form-group">
                             <input type="text" name="id" value="{{productos.id}}" hidden>
@@ -152,7 +155,7 @@
                             <textarea name="descripcion" class="form-control"
                                 required>{{productos.descripcion}}</textarea>
                         </div>
-                       
+
                         <div class="form-group">
 
                             {% if productos.logo %}
@@ -163,8 +166,7 @@
                             <input type="text" name="logos" value="{{ productos.logo
                             }}" hidden>
                             <label>Foto nueva</label>
-                            <input type="file" name="logo" class="form-control"
-                                value="{{productos.logo}}">
+                            <input type="file" name="logo" class="form-control" value="{{productos.logo}}">
                         </div>
                         <div class="form-group">
                             <select name="estado" id class="form-control">

@@ -1,74 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="utf-8">
+  <head>
+    <meta charset="utf-8" />
     <title>Productos</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <meta content="Free Website Template" name="keywords">
-    <meta content="Free Website Template" name="description">
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <meta content="Free Website Template" name="keywords" />
+    <meta content="Free Website Template" name="description" />
 
-    <!-- Favicon -->
-    <link href="img/favicon.ico" rel="icon">
 
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800;900&display=swap"
-        rel="stylesheet">
 
-    <!-- CSS Libraries -->
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <!-- Modificar las referencias a CSS para que funcionen en PDF -->
+    <style>
+        @page {
+            size: A5 landscape;
+            margin: 15mm;
+        }
 
-    <!-- Template Stylesheet -->
-    <link href="{{ url_for('static', filename='css/style_servicios_generador.css') }}" rel="stylesheet">
-</head>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+        }
 
-<body>
-    <!-- Price Start -->
-    <div class="price">
-        <div class="container">
-            <div class="section-header text-center">
-                <p>Nuestros productos son: </p>
-                <!-- <h2>Choose Your Plan</h2> -->
-            </div>
-            <div class="row">
-                {% for producto in productos %}
-                <div class="col">
-                    <div class="price-item">
-                        <div class="price-header">
-                            <img src="http://127.0.0.1:5000/{{ producto.logo }}" class="img-fluid rounded  w-50" alt="No hay foto del producto : /">
-                            <h3>{{ producto.nombre }}</h3>
-                        </div>
-                        <div class="price-body">
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
+        .container {
+            width: 100%;
+            padding: 0;
+            margin: 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .section-header p {
+            font-size: 34px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-bottom: 2px solid #E81C2E;
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+
+        .product-row {
+            width: 100%;
+            display: table;
+            table-layout: fixed;
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+        }
+
+        .price-item {
+            display: table-cell;
+            width: 33.33%;
+            padding: 10px;
+            text-align: center;
+            vertical-align: top;
+        }
+
+        .price-header img {
+            width: 250px;
+            height: auto;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .price-header h3 {
+            font-size: 26px;
+            margin: 10px 0;
+        }
+
+        .price-body ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .price-body li {
+            margin: 5px 0;
+            font-size: 24px;
+        }
+
+        /* Estilos específicos para impresión */
+        @media print {
+            .price-item {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            
+            .row {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 20px;
+            }
+        }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="section-header">
+        <p>Nuestros productos son:</p>
+      </div>
+      
+      {% for productos in productos|batch(3) %}
+      <div class="product-row">
+          {% for producto in productos %}
+          <div class="price-item">
+              <div class="price-header">
+                  <img src="file:///{{ producto.logo }}" alt="{{ producto.nombre }}">
+                  <h3>{{ producto.nombre }}</h3>
+              </div>
+              <div class="price-body">
+                  <ul>
+                      <li>{{ producto.descripcion }}</li>
+                      <li style="font-size: 24px; font-weight: bold;">C$ {{ producto.precio }}</li>
+                  </ul>
+              </div>
+          </div>
+          {% endfor %}
+          
+          {# Rellena con celdas vacías si la última fila no está completa #}
+          {% for _ in range(3 - productos|length) %}
+          <div class="price-item"></div>
+          {% endfor %}
+      </div>
+      {% endfor %}
     </div>
-
-    <!-- Price End -->
 
     <div class="content-wrapper">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        {% for category, message in messages %}
-        <script>
-            Swal.fire(
-                '{{ category }}!',
-                '{{ message }}',
-                '{{ category.lower() }}'
-            );
-        </script>
-        {% endfor %}
-        {% endif %}
-        {% endwith %}
-
-        {% block main %}
-        <!-- Contenido específico de la página -->
-        {% endblock %}
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <script>
+        Swal.fire("{{ category }}!", "{{ message }}", "{{ category.lower() }}");
+      </script>
+      {% endfor %} {% endif %} {% endwith %} {% block main %}
+      <!-- Contenido específico de la página -->
+      {% endblock %}
     </div>
-</body>
-
+  </body>
 </html>
